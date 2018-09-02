@@ -1,0 +1,91 @@
+\documentclass[12pt,a4paper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage[makeroom]{cancel}
+\usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\begin{document}
+\title{GENE613 - Homework 5\\\small{Daniel Osorio - dcosorioh@tamu.edu\\Department of Veterinary Integrative Biosciences\\Texas A\&M University}}
+\maketitle
+\SweaveOpts{concordance=TRUE}
+\begin{enumerate}
+\item Express
+\begin{enumerate}
+\item The regression coefficient of $y$ on $x$ as a function of the correlation of variables $y$ and $x$.
+\begin{equation}
+\beta = r(\frac{s_{y}}{s_{x}})
+\end{equation}
+Where $\beta$ is the regression coefficient of $y$ on $x$, $r$ is the correlation between the variables $x$ and $y$, and $s_{x}$ and $s_{y}$ are the standard deviation of the $x$ and $y$ variables respectively.
+\item The correlation coefficient of $y$ and $x$ as a function of the regression of $y$ on $x$ 
+\begin{equation}
+r = \frac{\beta s_{x}}{s_{y}}
+\end{equation}
+Where $\beta$ is the regression coefficient of $y$ on $x$, $r$ is the correlation between the variables $x$ and $y$, and $s_{x}$ and $s_{y}$ are the standard deviation of the $x$ and $y$ variables respectively.
+\end{enumerate}
+\item Commercial bovine chip arrays of $\sim 50.000$ marker loci or $\sim 770.000$ marker loci were designed with average $r^{2}$ (as the measurement of linkage disequilibrium) between adjacent markers of $0.2$ and $0.6$ respectively. Why? Because the number of marker loci that can be identified are positively correlated with the $r^{2}$ value, lower number of $r^{2}$ requires fewer markers to cover the entire genome due to 80\% of the time the identified markers will be segregated together.
+\item [] Use the Dorper sheep data that follows:
+<<>>=
+dorperSheep <- read.csv("../data/dorperSheep.csv")
+attach(dorperSheep)
+dorperSheep
+@
+\item Adjust $BW$ using age group averages. What does this do and why? This procedure center the values to 0 by subtracting the mean of each group to the original values. Adjust the values allow us to identify the deviation with respect to the mean of each group.
+<<>>=
+adjust <- function (values, groups) {
+  newValues <- values
+  for (group in unique(groups)) {
+    groupElements <- groups %in% group
+    groupCenter <- values[groupElements]
+    groupCenter <- groupCenter[!is.na(groupCenter)]
+    groupCenter <- mean(groupCenter, na.rm = TRUE)
+    newValues[groupElements] <- (values[groupElements] - groupCenter)
+  }
+  return(newValues)
+}
+adjust(values = BW, groups = AGE)
+@
+\item Predict breeding values and accuracies for $BW$ given $h^{2} = 0.35$ and $R = 0.59$
+<<>>=
+BV <- adjust(values = BW, groups = AGE) * 0.35
+ACC <- ifelse(test = !is.na(BV),yes = sqrt(0.35),no = NA)
+cbind(BV,ACC)
+@
+\item Adjust $FAMACHA$ values using year averages (don't use ewe age). 
+<<>>=
+adjust(values = FAMACHA, groups = YEAR)
+@
+\item Predict producing abilities and corresponding accuracies for each ewe for eacth trait.
+<<>>=
+computeERPA <- function(measurement, R) {
+  variable <- adjust(values = measurement, groups = YEAR)
+  ERPA <- t(sapply(unique(ID), function(id) {
+    value <- !is.na(variable)
+    validRecord <- ID %in% id & value
+    n <- max(order(YEAR[validRecord]))
+    vRn <- (n * R / (1 + (n - 1) * R))
+    year <- YEAR[validRecord]
+    nValues <-
+      round(mean(variable[validRecord][year %in% seq_len(max(year))]), 2)
+    ERPA <- round(nValues * vRn, 2)
+    ACC <- round(sqrt(vRn), 2)
+    cbind(id,
+          nValues,
+          n,
+          ERPA,
+          ACC)
+  }))
+  colnames(ERPA) <- c("ID", "AVERAGE", "n", "ERPA", "ACC")
+  return(ERPA)
+}
+computeERPA(measurement = BW, R = 0.59)
+computeERPA(measurement = FAMACHA, R = 0.5)
+computeERPA(measurement = FEC, R = 0.1)
+computeERPA(measurement = PCV, R = 0.15)
+@
+\end{enumerate}
+\end{document}

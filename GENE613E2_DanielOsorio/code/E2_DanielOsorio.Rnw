@@ -1,0 +1,236 @@
+\documentclass[12pt,a4paper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage[makeroom]{cancel}
+\usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\begin{document}
+\title{GENE613 - Exam 2\\\small{Daniel Osorio - dcosorioh@tamu.edu\\Department of Veterinary Integrative Biosciences\\Texas A\&M University}}
+\maketitle
+\SweaveOpts{concordance=TRUE}
+\begin{enumerate}
+\item Two syntenic loci each with 2 alleles. In generation 0 $D = 0.24$ and in generation 3 $D = 0.12$
+\begin{enumerate}
+\item What is the recombination rate $r$?
+\begin{equation*}
+\begin{split}
+D^{t}_{AB} &= (1-r)^{t}D^{0}_{AB}\\
+\frac{D^{t}_{AB}}{D^{0}_{AB}} &= (1-r)^{t}\\
+\sqrt[t]{\frac{D^{t}_{AB}}{D^{0}_{AB}}} &= (1-r)\\
+1-\sqrt[t]{\frac{D^{t}_{AB}}{D^{0}_{AB}}} &= r\\
+1-\sqrt[3]{\frac{0.12}{0.24}} &= r\\
+0.206 &= r\\
+\end{split}
+\end{equation*}
+\item What does this parameter mean?\\
+\textit{The recombination rate $r$ is the probability of an odd number of crossovers between two loci. It also represents the proportion of time alleles from two different grandpartents occur in the same gamete. It increases (at a variable rate depending upon genomic location) with physical (bp) distance.}
+\item Is this value large or small?\\
+\textit{The recombination rate $r$ parameter space is between 0 and 0.5. Given a value of  $r = 0.206$ that represents the 41\% of the maximum possible recombination rate.}
+\end{enumerate}
+\item For two syntenic loci with alleles $A$, $a$ and $B$, $b$, give an example showing why the parameter space of $D_{AB}$ must be: $max(-p_{A}p_{B},-p_{a}p_{b}) \leq D_{AB} \leq min(p_{A}p_{b},p_{a}p_{B})$.\\
+\textit{As $D_{AB}$ is a portion of additional or missing expected genotype frequency, and  the sum of all the genotypes in a population must be 1 with each genotype frequency in a range between 0 and 1.}
+\begin{center}
+\begin{tabular}{|r||c|c||l|}
+\hline
+&A&a&\\
+\hline
+\hline
+B&$p_{B}p_{A}+D_{AB}$&$p_{B}p_{a}-D_{AB}$&$p_{B}$\\
+\hline
+b&$p_{b}p_{A}-D_{AB}$&$p_{b}p_{a}+D_{AB}$&$p_{b}$\\
+\hline
+\hline
+&$p_{A}$&$p_{a}$&1\\
+\hline
+\end{tabular}
+\end{center}
+\textit{If we consider as an as example that: $p_{A} = 0.7,  p_{B} = 0.6, p_{a} = 0.3$ and  $p_{b} = 0.4$, then the expected values will be:}
+\begin{center}
+\begin{tabular}{|r||c|c||l|}
+\hline
+&A&a&\\
+\hline
+\hline
+B&$0.42+D_{AB}$&$0.18-D_{AB}$&$p_{B}$\\
+\hline
+b&$0.28-D_{AB}$&$0.12+D_{AB}$&$p_{b}$\\
+\hline
+\hline
+&$p_{A}$&$p_{a}$&1\\
+\hline
+\end{tabular}
+\end{center}
+\textit{And the parameter space for $D_{AB}$ will be: $max\left(-0.42,\textbf{-0.12}\right) \leq D_{AB} \leq min\left(0.28,\textbf{0.18}\right)$ otherwise the values of D will lead generate negative values of the genotype frequencies, out of the range of the expected values (which is not possible).}
+\item If 3 loci influence a trait
+\begin{enumerate}[label=(\roman*)]
+\item $A \times A \times A$
+\item $A \times A \times D$
+\item $A \times D \times A$
+\item $A \times D \times D$
+\item $D \times A \times A$
+\item $D \times A \times D$
+\item $D \times D \times A$
+\item $D \times D \times D$
+\end{enumerate}
+\begin{enumerate}
+\item How many epistatic interactions are possible that involve dominance genetic action? \textit{Seven events could be possible involving dominance genetic action (II, III, IV, V, VI, VII, VIII)}
+\item How many epistatic interactions are possible that involve additive genetic action?
+\textit{Seven events could be possible involving aditive genetic action (I, II, III, IV, V, VI, VII)}
+\end{enumerate}
+\item Genetic parameters ($h^{2}$ on diagonal elements and $r_{a}$ on off-diagonal elements) and variances for wool traits and progeny birth weight of Rambouillet ewes (Bromley et al., J. Anim Sci., 2000; 78:846-858)
+\begin{center}
+\begin{tabular}{|r|c|c|c|c|}
+\hline
+&Staple length&Flence Weight&Fleece Grade&Birth wt\\
+\hline
+Staple length&0.37&0.56&-0.54&-0.01\\
+\hline
+Flence Weigh&&0.52&-0.46&-0.06\\
+\hline
+Fleece Grade&&&0.26&-0.12\\
+\hline
+Birth wt&&&&0.2\\
+\hline
+\hline
+$\sigma^{2}_{p}$&0.9&0.6&5&1\\
+\hline
+\end{tabular}
+\end{center}
+In a selection program to increase Fleece Grade the best 11\% of rams (males) and 35\% of ewes (females) are selected each generation.
+\begin{enumerate}
+\item Calculate the response to selection per generation.
+\begin{equation*}
+\begin{split}
+R_{k} &= \frac{h^{2}S_{sires_{k-1}}+h^{2}S_{dams_{k-1}}}{2}\\ 
+R_{k} &= \frac{h^{2}\sigma_{p}i_{sires_{k-1}}+h^{2}\sigma_{p}i_{dams_{k-1}}}{2}\\
+R_{k} &= \frac{0.26 \times (1.71 \times \sqrt{5})+0.26 \times (1.06 \times \sqrt{5})}{2}\\
+R_{k} &= \frac{1.61}{2}\\
+R_{k} &= 0.805
+\end{split}
+\end{equation*}
+\end{enumerate}
+\item Using the selection program and parameters in \#4, estimate the correlated response to selection for Fleece Grade per generation in each of the other traits.
+\begin{equation*}
+\begin{split}
+CR_{Y} &= ih_{X}h_{Y}r_{a}\sigma_{p_{Y}}\\
+CR_{SL} &= \left(\frac{1.17 + 1.06}{2}\right) \times \sqrt{0.26} \times \sqrt{0.37} \times -0.54 \times \sqrt{0.9} = -0.177\\
+CR_{FW} &= \left(\frac{1.17 + 1.06}{2}\right) \times \sqrt{0.26} \times \sqrt{0.52} \times -0.46 \times \sqrt{0.6} = -0.146\\
+CR_{BW} &= \left(\frac{1.17 + 1.06}{2}\right) \times \sqrt{0.26} \times \sqrt{0.20} \times -0.12 \times \sqrt{1} = -0.031\\
+\end{split}
+\end{equation*}
+\item With the following pedigree from \textit{Potentilla argentea} (hoary cinquefoil)
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Individual&Male Parent&Female Parent\\
+\hline
+1&&\\
+\hline
+2&&\\
+\hline
+3&1&2\\
+\hline
+4&3&3\\
+\hline
+5&1&4\\
+\hline
+6&4&2\\
+\hline
+7&5&6\\
+\hline
+\end{tabular}
+\end{center}
+\begin{enumerate}
+\item What is the average inbreeding coefficient of the plants in this pedigree?
+<<echo=FALSE>>=
+additiveRelationship <- function(data, orderedIDs){
+  data <- as.matrix(data[, c("Individual", "Sire", "Dam")])
+  n <- length(orderedIDs)
+  aR <- matrix(
+    data = 0,
+    nrow = n,
+    ncol = n,
+    dimnames = list(orderedIDs, orderedIDs)
+  )
+  diag(aR) <- 1
+  for(i in seq_len(n)){
+    for(j in seq_len(n)){
+      if(j > i){
+        row <- orderedIDs[i]
+        column <- orderedIDs[j]
+        parents <- data[data[,"Individual"] %in% column,2:3]
+        if(all(is.na(parents))){next()} else {
+        value <- (0.5 * (aR[row,parents[1]] + aR[row,parents[2]]))
+        aR[row,column] <- aR[column,row] <-  value 
+        }
+      } else {
+      row <- orderedIDs[i]
+      parents <- data[data[,"Individual"] %in% row,2:3]
+      if(all(is.na(parents))){next()} else {
+      aR[row,row] <- (1+ 0.5 * (aR[parents[1],parents[2]]))}
+      }
+    }
+  }
+  return(round(aR,3))
+}
+potentillaArgentea <- NULL
+potentillaArgentea$Individual <- 1:7
+potentillaArgentea$Sire <- c(NA, NA, 1,3,1,4,5)
+potentillaArgentea$Dam <- c(NA, NA, 2,3,4,2,6)
+potentillaArgentea <- as.data.frame.array(as.data.frame(potentillaArgentea))
+aR <- additiveRelationship(potentillaArgentea, orderedIDs = 1:7)
+diag(aR)-1
+round(mean(diag(aR)-1),3)
+@
+\item What is the average additive relationship of pair of plants, excluding relationship of plants with themselves?
+<<echo=FALSE>>=
+diag(aR) <- NA
+aR
+mean(aR, na.rm = TRUE)
+@
+\item Give the average Wrigth's relationship coefficient for plant 2 with each of the other plants
+<<echo=FALSE>>=
+orderedIDs = 1:7
+  aR <- additiveRelationship(potentillaArgentea, orderedIDs = 1:7)
+  n <- ncol(aR)
+  WC <- matrix(0,n,n)
+  colnames(WC) <- colnames(aR)
+  rownames(WC) <- rownames(aR)
+  for(i in seq_len(n)){
+    for(j in seq_len(n)){
+      row <- orderedIDs[i]
+      column <- orderedIDs[j]
+      WC[i,j] <- aR[row,column]/sqrt(aR[row,row]*aR[column,column])
+    }
+  }
+round(WC[2,],3)
+mean(round(WC[2,-2],3))
+@
+\item What does Wrigts's relationship coefficient do matematically to aditive relatedness values?
+\textit{Divide the additive relationship by the square root of the multiplication between the 1+F of the two individuals, modifying the parameter space to be between 0 and 1}
+\end{enumerate}
+\item Rank the following information with regards to how well a phenotype of each would predict breeding values of individual $G$
+<<echo=FALSE>>=
+x <- NULL
+x$Individual <- c("1","2","3","4","5","A","B","E","G","D","C","F")
+x$Sire <- c(NA,NA,NA,NA,NA,"1","1","3","4","G","5","G")
+x$Dam <- c(NA,NA,NA,NA,NA,"2","2","A","A","G","G","C")
+x <- as.data.frame.array(as.data.frame(x))
+#additiveRelationship(x, orderedIDs = c("1","2","3","4","5","A","B","E","G","D","C","F"))["G",c("A","B","E","G","D","C","F")]
+@
+\begin{enumerate}
+\item $G$'s father $\frac{\sqrt{h^{2}}}{2}$
+\item $G$'s uncle (full-sibling of $G$'s father) $\frac{\sqrt{h^{2}}}{4}$
+\item $G$'s single progeny from unrelated mother $\frac{\sqrt{h^{2}}}{2}$
+\item $G$'s clone $\sqrt{h^{2}}$
+\item $G$'s half-sibling brothers (3 of them) $\sqrt{\frac{\frac{3h^{2}}{4}}{4+2h^{2}}}$
+\item $G$'s single progeny that is also grandprogeny (from mother who was also $G$'s progeny) $\frac{3\sqrt{h^{2}}}{4}$
+\end{enumerate}
+\textit{The ranking in order of how well a phenotype of a related individual would predict breeding values of individual $G$ is $d > f > c > a > e > b$}.
+\end{enumerate}
+\end{document}

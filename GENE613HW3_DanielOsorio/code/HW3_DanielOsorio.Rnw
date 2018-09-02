@@ -1,0 +1,121 @@
+\documentclass[12pt,a4paper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage[makeroom]{cancel}
+\usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\begin{document}
+\title{GENE613 - Homework 3\\\small{Daniel Osorio - dcosorioh@tamu.edu\\Department of Veterinary Integrative Biosciences\\Texas A\&M University}}
+\maketitle
+\SweaveOpts{concordance=TRUE}
+Single locus with 2 alleles in 2 population in Hardy–Weinberg equilibrium. Given $f(A) = p_{1} = 0.3$ in population 1; and  $f(A) = p_{2} = 0.4$ in population 2; $a = -2$; $d = 1.5$.
+\begin{enumerate}
+\item Assume a group of migrants $m = 0.12$ from population 2 to population 1.
+\begin{enumerate}
+\item After this migration event, what will be the allele frequencies in each population?
+<<>>=
+newAlleleFrequencies <- function(p1, p2, m) {
+  A = ((1 - m) * p1) + (m * p2)
+  a = 1 - A
+  return(c(A = A, a = a))
+}
+newAlleleFrequencies(p1 = 0.3, p2 = 0.4, m = 0.12)
+@
+\item Assume ranom mating in both populations again. What will be the change in means in each population from before to current?
+<<>>=
+populationMean <- function(p, a, d) {
+  q <- (1 - p)
+  return(p^2*a + 2*p*q*d + q^2*-a)
+}
+meansChange <- function(Mnew, M){
+  Mnew - M
+}
+# Population 1
+meansChange(Mnew = populationMean(p = 0.312, a = -2, d = 1.5), 
+            M = populationMean(p = 0.3, a = -2, d = 1.5))
+# Population 2
+meansChange(Mnew = populationMean(p = 0.4, a = -2, d = 1.5), 
+            M = populationMean(p = 0.4, a = -2, d = 1.5))
+@
+\item Put $\Delta = p_{2} - p_{1}$, originally (in terms of a single parameter representing allele frequency) $f(A) = p_{1}$ and $f(a) = 1 - p_{1}$ and now $f(A)_{new} = p_{1} + m\Delta$, and $f(a)_{new} = 1 - p_{1} - m\Delta$. The original genotypic mean was: $M = (2p_{1}-1)a + 2p_{1}(1-p_{1})d$, and after migration and return to random mating $M_{new}=(2p_{1} -1 + 2m\Delta)a + 2[p_{1}(1-p_{1})-m\Delta(2p_{1} - 1 + m\Delta)]d$. Show algebraically that the change on population mean is $M_{new} - M = 2m\Delta[a-(2p_{1}-1+m\Delta)d]$ and confirm that this is correct whit allele frequencies as above.
+\begin{equation}
+\begin{split}
+M_{new} & = (2p_{1} -1 + 2m\Delta)a + 2[p_{1}(1-p_{1})-m\Delta(2p_{1} - 1 + m\Delta)]d \\
+& = 2p_{1}a - a + 2m\Delta a + 2[p_{1}(1-p_{1})-m\Delta(2p_{1} - 1 + m\Delta)]d\\
+& = 2p_{1}a - a + 2m\Delta a + 2[p_{1} - p_{1}^{2} - m\Delta(2p_{1} - 1 + m\Delta)]d \\
+& = 2p_{1}a - a + 2m\Delta a + 2[p_{1} - p_{1}^{2} - 2p_{1}m\Delta - m\Delta + m^{2}\Delta^{2}]d\\
+& = 2p_{1}a - a + 2m\Delta a + 2dp_{1} - 2dp_{1}^{2} - 4dp_{1}m\Delta - 2dm\Delta + 2dm^{2}\Delta^{2}\\
+\end{split}
+\end{equation}
+\begin{equation}
+\begin{split}
+M & = (2p_{1}-1)a + 2p_{1}(1-p_{1})d \\
+& = 2p_{1}a - a + 2p_{1}(1-p_{1})d \\
+& = 2p_{1}a - a + 2dp_{1}- 2dp_{1}^{2} \\
+\end{split}
+\end{equation}
+\begin{equation}
+\begin{split}
+2m\Delta[a-(2p_{1}-1+m\Delta)d] & = 2p_{1}a - a + 2m\Delta a + 2dp_{1} - 2dp_{1}^{2} - 4dp_{1}m\Delta\\& - 2dm\Delta + 2dm^{2}\Delta^{2} - [2p_{1}a - a + 2dp_{1}- 2dp_{1}^{2}] \\
+2m\Delta[a-(2p_{1}-1+m\Delta)d] & = 2p_{1}a - a + 2m\Delta a + 2dp_{1} - 2dp_{1}^{2} - 4dp_{1}m\Delta\\& - 2dm\Delta + 2dm^{2}\Delta^{2} - 2p_{1}a + a - 2dp_{1}+ 2dp_{1}^{2} \\
+2m\Delta[a-(2p_{1}-1+m\Delta)d] & = \cancel{2p_{1}a} - a + 2m\Delta a + 2dp_{1} - 2dp_{1}^{2} - 4dp_{1}m\Delta\\& - 2dm\Delta + 2dm^{2}\Delta^{2} \cancel{- 2p_{1}a} + a - 2dp_{1}+ 2dp_{1}^{2} \\
+2m\Delta[a-(2p_{1}-1+m\Delta)d] & = \cancel{- a} + 2m\Delta a + 2dp_{1} - 2dp_{1}^{2} - 4dp_{1}m\Delta\\& - 2dm\Delta + 2dm^{2}\Delta^{2} \cancel{+ a} - 2dp_{1}+ 2dp_{1}^{2} \\
+2m\Delta[a-(2p_{1}-1+m\Delta)d] & = 2m\Delta a \cancel{+ 2dp_{1}} - 2dp_{1}^{2} - 4dp_{1}m\Delta\\& - 2dm\Delta + 2dm^{2}\Delta^{2} \cancel{- 2dp_{1}} + 2dp_{1}^{2} \\
+2m\Delta[a-(2p_{1} - 1 + m\Delta)d] & = 2m\Delta a \cancel{- 2dp_{1}^{2}} - 4dp_{1}m\Delta - 2dm\Delta + 2dm^{2}\Delta^{2} \cancel{ + 2dp_{1}^{2}} \\
+2m\Delta[a-(2p_{1}-1+m\Delta)d] & = 2m\Delta a - 4dp_{1}m\Delta - 2dm\Delta + 2dm^{2}\Delta^{2} \\
+2m\Delta[a-(2p_{1}-1+m\Delta)d] & = 2m\Delta[a - 2dp_{1} - d + dm\Delta]\\
+2m\Delta[a-(2p_{1}-1+m\Delta)d] & = 2m\Delta[a - (2p_{1} - 1 + m\Delta)d]\\
+\end{split}
+\end{equation}
+<<>>=
+p1 <- 0.3
+p2 <- 0.4
+m <- 0.12
+a = -2
+d = 1.5
+delta <- (p2 - p1)
+2 * m * delta * (a - (2 * p1 - 1 +  (m * delta)) * d)
+@
+\item Use migration proportions from 0.05 to 0.45 in increments of 0.05 and allele frequency differences between populations ($\Delta$) from 0 to 0.3 in increments of 0.05, develop a matrix of allele frequencies in the receiving population and a matrix of changes in mean of the receiving population after return to random mating. Make both matrices with respect to the initial frequency of the $A$ allele in the receiving population, that is, do not make them cumulative. Briefly interpret the results presented in each.
+<<>>=
+alleleF <- sapply(seq(0.05, 0.45, 0.05), function(mProportion) {
+  sapply(seq(0, 0.3, 0.05), function(alleleDiff) {
+    round(newAlleleFrequencies(
+      p1 = 0.3,
+      p2 = (0.3 + alleleDiff),
+      m = mProportion
+    )[1], 2)
+  })
+})
+dimnames(alleleF) <- list(
+  Delta = seq(0, 0.3, 0.05),
+  migrationProportion = seq(0.05, 0.45, 0.05)
+)
+alleleF
+meanChanges <- sapply(seq(0.05, 0.45, 0.05), function(mProportion) {
+  sapply(seq(0, 0.3, 0.05), function(alleleDiff) {
+    originalMean <- populationMean(p = 0.3, a = -2, d = 1.5)
+    newAlleleF <- newAlleleFrequencies(p1 = 0.3,
+                                       p2 = (0.3 + alleleDiff),
+                                       m = mProportion)[1]
+    newMean <- populationMean(p = newAlleleF, a = -2, d = 1.5)
+    round(meansChange(Mnew = newMean, M = originalMean), 2)
+  })
+})
+dimnames(meanChanges) <- list(
+  Delta = seq(0, 0.3, 0.05),
+  migrationProportion = seq(0.05, 0.45, 0.05)
+)
+meanChanges
+@
+\begin{description}[align=left]
+\item [Interpretation:] The first matrix shows how the frequency of the allele A $f(A)$ change gradually in function of the changes of  the $\Delta$ parameter and the $m$ proportion. As we can see, the $f(A)$ is more affected in two scenarios, when the $\Delta$ is high and the proportion of migrants is also high. The same effect is shown in the second matrix, where the differences in the population mean are shown after a migration event.
+\end{description}
+\end{enumerate}
+\end{enumerate}
+\end{document}

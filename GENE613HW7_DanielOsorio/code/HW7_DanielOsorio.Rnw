@@ -1,0 +1,169 @@
+\documentclass[12pt,a4paper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage[makeroom]{cancel}
+\usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\begin{document}
+\title{GENE613 - Homework 7\\\small{Daniel Osorio - dcosorioh@tamu.edu\\Department of Veterinary Integrative Biosciences\\Texas A\&M University}}
+\maketitle
+\SweaveOpts{concordance=TRUE}
+\begin{enumerate}
+\item If an animal has available its own performance $(X_{1}=50)$, the average performance of 8 paternal half-sibs $(X_{2}=65)$, the average performance of 10 progeny $(X_{3}=40)$ and the performance of its sire $(X_{4}=75)$, all this information can be used to calculate the animal's EBV using the selection index approach, solving for \[P\underline{b}=\underline{r}\] Assume the phenotypic and additice genetic variances are 2250 and 860, respectively.
+\begin{enumerate}
+\item Construct the $P$ matrix as the variances and covariances for the sources of information.
+\begin{equation*}
+P = 
+\begin{bmatrix}
+\sigma^{2}_{P} & 0.25\sigma^{2}_{A} & 0.5\sigma^{2}_{A} & 0.5\sigma^{2}_{A}\\
+0.25\sigma^{2}_{A} & \sigma^{2}_{P} & 0.125\sigma^{2}_{A} & 0.5\sigma^{2}_{A} \\
+0.5\sigma^{2}_{A} & 0.125\sigma^{2}_{A} & \sigma^{2}_{P} & 0.25\sigma^{2}_{A} \\
+0.5\sigma^{2}_{A} & 0.5\sigma^{2}_{A} & 0.25\sigma^{2}_{A} & \sigma^{2}_{P}\sigma^{2}_{A}
+\end{bmatrix} = \begin{bmatrix}
+2250 & 215 & 430 & 430\\
+215 & 2250 & 107.5 & 430\\
+430 & 107.5 & 2250 & 215\\
+430 & 430 & 215 & 2250
+\end{bmatrix}
+\end{equation*}
+<<echo=FALSE>>=
+createA <- function(s, d){
+  n <- length(s)
+  N <- n + 1
+  A <- matrix(0, ncol=N, nrow=N)
+  s <- (s == 0)*(N) + s
+  d <- (d == 0)*N + d
+  for(i in 1:n){
+    A[i,i] <- 1 + A[s[i], d[i]]/2
+    for(j in (i+1):n){
+      if (j > n) break
+      A[i,j] <- ( A[i, s[j]] + A[i,d[j]] )/2
+      A[j,i] <- A[i,j] 	
+    }			
+  }
+  return(A[1:n, 1:n])
+}
+P <- createA(c(0,1,1,2),c(0,0,0,0))
+P <- P[c(2,3,4,1),c(2,3,4,1)]
+r <- P[1,]
+colnames(P) <- rownames(P) <- paste0("X",1:4)
+P <- P * 860
+diag(P) <- 2250
+@
+\item Construct the $\underline{r}$ vector as the covariates of the animal's true BV with the sources of information.
+\begin{equation*}
+\underline{r} = \begin{bmatrix}\sigma^{2}_{A} \\ 0.25\sigma^{2}_{A} \\ 0.5\sigma^{2}_{A} \\ 0.5\sigma^{2}_{A}\end{bmatrix}= \begin{bmatrix}860 \\ 215 \\ 430 \\ 430\end{bmatrix}
+\end{equation*}
+<<echo=FALSE>>=
+r <- r*860
+names(r) <- paste0("X",1:4)
+@
+\item Invert the $P$ matrix
+\begin{equation*}
+P^{-1} = \begin{bmatrix}
+0.000478 & -0.000027 & -0.000083 & -0.000078 \\
+-0.000027 & 0.000463 & -0.000009 & -0.000083\\
+-0.000083 & -0.000009 & 0.000463 & -0.000027\\
+-0.000078 & -0.000083 & -0.000027 & 0.000478
+\end{bmatrix}
+\end{equation*}
+\item Pre-multiply the $P^{-1}$ matrix to the $\underline{r}$ vector and show the resulting $\underline{\hat{b}}$ values.
+\begin{equation*}
+\underline{\hat{b}} = P^{-1} \times \underline{r}
+\end{equation*}
+\begin{equation*}
+\underline{\hat{b}} = \begin{bmatrix}
+0.000478 & -0.000027 & -0.000083 & -0.000078 \\
+-0.000027 & 0.000463 & -0.000009 & -0.000083\\
+-0.000083 & -0.000009 & 0.000463 & -0.000027\\
+-0.000078 & -0.000083 & -0.000027 & 0.000478
+\end{bmatrix} \times \begin{bmatrix}860 \\ 215 \\ 430 \\ 430\end{bmatrix} = \begin{bmatrix}0.336 \\ 0.037 \\ 0.115 \\ 0.109\end{bmatrix}
+\end{equation*}
+<<echo=FALSE>>=
+beta <- solve(P) %*% r
+colnames(beta) <- "betaHat"
+@
+\item Calculate the EBV as $I =$ index on the animal.
+\begin{equation*}
+I = \begin{bmatrix}50 & 65 & 40 & 75\end{bmatrix} \times \begin{bmatrix}0.336 \\ 0.037 \\ 0.115 \\ 0.109\end{bmatrix} = 31.966
+\end{equation*}
+<<echo=FALSE>>=
+EBV <- c(50, 65, 40, 75) %*% beta
+colnames(EBV) <- "EBV"
+@
+\item Calculate the ACC value associated with the EBV.
+\begin{equation*}
+ACC = \sqrt{\left(\frac{\underline{r}}{\sigma^{2}_{A}}\right)'\times \underline{\hat{b}}} = \sqrt{\begin{bmatrix}1 & 0.25 & 0.5 & 0.5\end{bmatrix} \times \begin{bmatrix}0.336 \\ 0.037 \\ 0.115 \\ 0.109\end{bmatrix}} = 0.676
+\end{equation*}
+<<echo=FALSE>>=
+ACC <- sqrt(t(r/860) %*% beta)
+colnames(ACC) <- "ACC"
+@
+\end{enumerate}
+\item Estimate breeding values on the 6 individuals below using BLUP and the MME. Weights are already adjusted for sex differences. Assume $\sigma^{2}_{P} = 2500$ and $\sigma^{2}_{A} = 900$
+\begin{center}\begin{tabular}{|c||c|c|c|c|}
+\hline
+ID&SIRE&DAM&GC&WEIGHT\\
+\hline
+\hline
+1&0&0&1&930\\
+\hline
+2&0&0&1&880\\
+\hline
+3&1&0&2&965\\
+\hline
+4&1&2&2&945\\
+\hline
+5&3&0&3&970\\
+\hline
+6&4&0&3&950\\
+\hline
+\end{tabular}\end{center}
+\begin{enumerate}
+\item Construct the MME
+% \begin{equation}
+% X = \begin{bmatrix}1&1&0&0\\1&1&0&0\\1&0&1&0\\1&0&1&0\\1&0&0&1\\1&0&0&1\end{bmatrix} \hspace{0.5cm} Z = \begin{bmatrix}1&0&0&0&0&0\\0&1&0&0&0&0\\0&0&1&0&0&0\\0&0&0&1&0&0\\0&0&0&0&1&0\\0&0&0&0&0&1\end{bmatrix} \hspace{0.5cm} y = \begin{bmatrix}930\\880\\965\\945\\970\\950\end{bmatrix} \hspace{0.5cm} \lambda = \frac{2500-900}{900} = 1.78
+% \end{equation}
+\begin{equation*}
+\begin{bmatrix}X'X & X'Z\\Z'X & Z'Z + A^{-1}\lambda\end{bmatrix} \times \begin{bmatrix}\underline{\hat{\beta}}\\\underline{\hat{u}}\end{bmatrix} = \begin{bmatrix}X'\underline{y}\\Z'\underline{y}\end{bmatrix}
+\end{equation*}
+\begin{equation*}
+\begin{bmatrix}6&2&2&2&1&1&1&1&1&1\\
+2&2&0&0&1&1&0&0&0&0\\
+2&0&2&0&0&0&1&1&0&0\\
+2&0&0&2&0&0&0&0&1&1\\
+1&1&0&0&4.26&0.89&-1.19&-1.78&0&0\\
+1&1&0&0&0.89&3.67&0&-1.78&0&0\\
+1&0&1&0&-1.19&0&3.96&0&-1.19&0\\
+1&0&1&0&-1.78&-1.78&0&5.15&0&-1.19\\
+1&0&0&1&0&0&-1.19&0&3.37&0\\
+1&0&0&1&0&0&0&-1.19&0&3.37\end{bmatrix} \times \begin{bmatrix}\mu\\\beta_{1}\\\beta_{2}\\\beta_{3}\\u_{1}\\u_{2}\\u_{3}\\u_{4}\\u_{5}\\u_{6}\end{bmatrix}= \begin{bmatrix}5740\\1810\\1910\\1920\\930\\880\\965\\945\\970\\950\end{bmatrix}
+\end{equation*}
+<<echo=FALSE>>=
+y = c(5740, 1810, 1910, 1920, 930, 880, 965, 945, 970, 950)
+A = createA(c(0,0,1,1,3,4),c(0,0,0,2,0,0))
+X = matrix(c(1,1,1,1,1,1,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1),ncol = 4, byrow = FALSE)
+Z = matrix(0, nrow = 6, ncol = 6)
+diag(Z) = 1
+h <- (2500-900)/900
+MME <- round(rbind(cbind(t(X)%*%X,t(X)%*%Z),cbind(t(Z)%*%X,t(Z) %*% Z + (solve(A) * h))),2)
+@
+\item After deleting the equation for $\mu$, show the solutions vector $(\hat{\beta},\hat{u})$ containing contemporary group effects and estimated breeding values.
+\begin{equation*}
+\begin{bmatrix}\beta_{1}\\\beta_{2}\\\beta_{3}\\u_{1}\\u_{2}\\u_{3}\\u_{4}\\u_{5}\\u_{6}\end{bmatrix} = \begin{bmatrix}0.77&0.21&0.11&-0.28&-0.27&-0.16&-0.26&-0.09&-0.12\\0.21&0.85&0.17&-0.26&-0.17&-0.34&-0.35&-0.17&-0.18\\0.11&0.17&0.8&-0.13&-0.08&-0.17&-0.18&-0.3&-0.3\\-0.28&-0.26&-0.13&0.46&0.1&0.24&0.27&0.12&0.14\\-0.27&-0.17&-0.08&0.1&0.44&0.09&0.24&0.06&0.11\\-0.16&-0.34&-0.17&0.24&0.09&0.48&0.21&0.22&0.13\\-0.26&-0.35&-0.18&0.27&0.24&0.21&0.49&0.13&0.23\\-0.09&-0.17&-0.3&0.12&0.06&0.22&0.13&0.46&0.13\\-0.12&-0.18&-0.3&0.14&0.11&0.13&0.23&0.13&0.47\end{bmatrix} \times \begin{bmatrix}1810\\1910\\1920\\930\\880\\965\\945\\970\\950\end{bmatrix}
+\end{equation*}
+\begin{equation*}
+\begin{bmatrix}\beta_{1}\\\beta_{2}\\\beta_{3}\\u_{1}\\u_{2}\\u_{3}\\u_{4}\\u_{5}\\u_{6}\end{bmatrix} = \begin{bmatrix}906.01\\952.8\\958.9\\8.67\\-10.68\\7.47\\-3.07\\5.93\\-3.72\end{bmatrix}
+\end{equation*}
+<<echo=FALSE>>=
+BU <- solve(MME[-1,-1]) %*% y[-1]
+rownames(BU) <- c(paste0("beta",1:3),paste0("u",1:6))
+@
+\end{enumerate}
+\end{enumerate}
+\end{document}

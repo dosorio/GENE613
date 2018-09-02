@@ -1,0 +1,152 @@
+\documentclass[12pt,a4paper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage[makeroom]{cancel}
+\usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\begin{document}
+\title{GENE613 - Homework 6\\\small{Daniel Osorio - dcosorioh@tamu.edu\\Department of Veterinary Integrative Biosciences\\Texas A\&M University}}
+\maketitle
+\SweaveOpts{concordance=TRUE}
+<<echo=FALSE>>=
+nelloreAngus <- NULL
+nelloreAngus$Individual <- c("189P","374R", "527S","602W", "686W", "919Z")
+nelloreAngus$Phenotype <- c(20, -14,11, -1, 21, -19)
+nelloreAngus$Sire <- c("551G", "551G", "551G", "494S", "494S", "494S")
+nelloreAngus$Dam <- c("911H", "911H", "911H", "189P", "527S", "374R")
+nelloreAngus <- as.data.frame.array(as.data.frame(nelloreAngus))
+@
+\begin{enumerate}
+\item[] Use the following pedigree information for $F_{2}$ Nellore-Angus cross females to:
+<<echo=TRUE>>=
+nelloreAngus
+@
+\item Generate a matrix of additive relationship values $a_{xy}$
+<<>>=
+additiveRelationship <- function(data, orderedIDs){
+  data <- as.matrix(data[, c("Individual", "Sire", "Dam")])
+  n <- length(orderedIDs)
+  aR <- matrix(
+    data = 0,
+    nrow = n,
+    ncol = n,
+    dimnames = list(orderedIDs, orderedIDs)
+  )
+  diag(aR) <- 1
+  for(i in seq_len(n)){
+    for(j in seq_len(n)){
+      if(j > i){
+        row <- orderedIDs[i]
+        column <- orderedIDs[j]
+        parents <- data[data[,"Individual"] %in% column,2:3]
+        if(all(is.na(parents))){next()}
+        value <- (0.5 * (aR[row,parents[1]] + aR[row,parents[2]]))
+        aR[row,column] <- aR[column,row] <-  value
+      } else {
+      row <- orderedIDs[i]
+      parents <- data[data[,"Individual"] %in% row,2:3]
+      if(all(is.na(parents))){next()} else {
+      aR[row,row] <- (1+ 0.5 * (aR[parents[1],parents[2]]))}
+      }
+    }
+  }
+  return(aR)
+}
+additiveRelationship(data = nelloreAngus,
+                     orderedIDs = c("551G", "911H", "494S", "374R",
+                             "189P", "527S", "919Z", "602W", "686W"))
+@
+\item[] Non-additive relatedness: sharing of \underline{genotypes identical by descent.} This is dependent upon individuals having $> 2$ common ancestor that contribute to the relationship.
+\begin{equation}
+d_{xy} = \frac{(a_{\text{sire of X, sire of Y}} \times a_{\text{dam of X, dam of Y}} + a_{\text{sire of X, dam of Y}} \times a_{\text{sire of Y, dam of X}})}{4}
+\end{equation}
+\item Generate a matrix of dominance relationship values $d_{xy}$. What family structures resulted in values $> 0$. \textbf{Answer:} Offspring related to 551G and 911H.
+<<>>=
+dominanceRelationship <- function(data, orderedIDs){
+  data <- as.matrix(data[, c("Individual", "Sire", "Dam")])
+  n <- length(orderedIDs)
+  aR <- additiveRelationship(data = data, orderedIDs = orderedIDs)
+  dR <- matrix(
+    data = 0,
+    nrow = n,
+    ncol = n,
+    dimnames = list(orderedIDs, orderedIDs)
+  )
+  for(i in seq_len(n)){
+    for(j in seq_len(n)){
+        iP <- data[data[,"Individual"] %in% orderedIDs[i],2:3]
+        if(all(is.na(iP))){next()}
+        jP <- data[data[,"Individual"] %in% orderedIDs[j],2:3]
+        if(all(is.na(jP))){next()}
+        dR[i,j] <- 0.25* ((aR[iP[1],jP[1]] * aR[iP[2],jP[2]]) +
+          (aR[iP[1],jP[2]] * aR[jP[1],iP[2]]))
+    }
+  }
+  return(dR)
+}
+dominanceRelationship(data = nelloreAngus, 
+                      orderedIDs = c("551G", "911H", "494S", "374R",
+                             "189P", "527S", "919Z", "602W", "686W"))
+@
+\item If you distinctly (one at a time) predict breeding values for 919Z from single phenotypes of the individuals in the first column, which individuals' phenotypes result in the highest and lowest predicted values for 919Z? Which are the best and the worst predictions and why?\textbf{Answer:} The individual phenotype from which results the highest predictive breeding value for 919Z is itself and the lowest predictive breeding value result from using 686W because it shows the highest inverse phenotype. On another hand, the better and worse prediction result for 919Z is from itself and 189P or 527S respectively.
+<<>>=
+centeredP <- nelloreAngus$Phenotype - mean(nelloreAngus$Phenotype)
+names(centeredP) <- nelloreAngus$Individual
+
+aR <- additiveRelationship(data = nelloreAngus,
+                     orderedIDs = c("551G", "911H", "494S", "374R",
+                             "189P", "527S", "919Z", "602W", "686W"))
+
+Y <- centeredP[c("602W", "686W", "919Z")]
+X <- centeredP[c("189P", "527S", "374R")]
+h2 <- cov(Y,X)/var(X)
+aR["919Z",nelloreAngus$Individual] * h2 * nelloreAngus$Phenotype
+aR["919Z",nelloreAngus$Individual] * sqrt(h2)
+@
+\item Using breeding values based on phenotypes of progeny or progeny groups, which sire would be predicted to sire progeny with higher values of phenotype? How reliable are those predictors? What should sire breeding values average? \textbf{Answer:} The sire with the highest predicted values of phenotype to their progeny is 551G. The sire breeding values average and accuracy of the predictors are shown below.
+<<>>=
+EBV <- ACC <- NULL
+for (sire in c("551G", "494S")){
+  progeny <- centeredP[nelloreAngus$Sire %in% sire]
+  if(length(progeny) > 2){
+    numeratorEBV <- (2 * length(progeny) * h2)
+    denominatorEBV <- 4 + ((length(progeny) -1) * h2)
+    numeratorACC <- (length(progeny) * h2)
+    EBV <- c(EBV, ((numeratorEBV/denominatorEBV)*mean(progeny)))
+    ACC <- c(ACC, sqrt(numeratorACC/denominatorEBV))
+  } else {
+    EBV <- c(EBV, 0.5 * h2 * progeny)
+    ACC <- c(ACC, 0.5 * sqrt(h2))
+  }
+}
+names(EBV) <- names(ACC) <- c("551G", "494S")
+EBV
+ACC
+@
+\item Using breeding values based on phenotypes of progeny or progeny groups, which dam would be predicted to have progeny with higher values of phenotype? Why do accuracies differ from the dams' breeding values in this example? \textbf{Answer:} The dam with the highest values of phenotype predicted to their progeny is 527S. Accuracies differ between dams due to the number of progeny available to do the calculations.
+<<>>=
+EBV <- ACC <- NULL
+for (dam in c("911H", "189P", "527S", "374R")){
+  progeny <- centeredP[nelloreAngus$Dam %in% dam]
+  if(length(progeny) > 2){
+    numeratorEBV <- (2 * length(progeny) * h2)
+    denominatorEBV <- 4 + ((length(progeny) -1) * h2)
+    numeratorACC <- (length(progeny) * h2)
+    EBV <- c(EBV, ((numeratorEBV/denominatorEBV)*mean(progeny)))
+    ACC <- c(ACC, sqrt(numeratorACC/denominatorEBV))
+  } else {
+    EBV <- c(EBV, 0.5 * h2 * progeny)
+    ACC <- c(ACC, 0.5 * sqrt(h2))
+  }
+}
+names(EBV) <- names(ACC) <- c("911H", "189P", "527S", "374R")
+EBV
+ACC
+@
+\end{enumerate}
+\end{document}

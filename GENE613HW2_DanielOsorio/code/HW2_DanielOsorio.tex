@@ -1,0 +1,363 @@
+\documentclass[12pt,a4paper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage[makeroom]{cancel}
+\usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{Sweave}
+\begin{document}
+\title{GENE613 - Homework 2\\\small{Daniel Osorio - dcosorioh@tamu.edu\\Department of Veterinary Integrative Biosciences\\Texas A\&M University}}
+\maketitle
+\input{HW2_DanielOsorio-concordance}
+\begin{enumerate}
+\item Assume there are $n$ alleles at given locus. Given $\frac{n(n+1)}{2}$ different possible genotypes and $\frac{n(n-1)}{2}$ heterozygotes, probe algebraically that there are $n$ homozygotes.
+\begin{equation}
+\begin{split}
+n & = \frac{n(n+1)}{2} - \frac{n(n-1)}{2}\\
+n & =  \frac{n}{2}(\cancel{n}+1-\cancel{n}+1) \\
+n & =  \frac{\cancel{2}n}{\cancel{2}} \\
+n & =  n
+\end{split}
+\end{equation}
+\item The Boorola (B) gene influences fecundity (offspring number) in some populations (Australian) of Merino sheep. For two flocks, all individuals were genotyped and the average litter sizes for females of the different genotypes were determined.
+\begin{center}
+\begin{tabular}{|r|c|c|c|}
+\hline
+& bb & Bb & BB\\
+\hline
+Population 1&668&100&232\\
+\hline
+Population 2&9030&936&34\\
+\hline
+\hline
+Mean litter size&1.48&2.17&2.66\\
+\hline
+\end{tabular}
+\end{center}
+\begin{enumerate}
+\item Calculate the allele and genotype frequencies and population means at this locus.
+\begin{Schunk}
+\begin{Sinput}
+> alleleFrequencies <- function(genotypes){
++   BB <- genotypes[[3]]
++   Bb <- genotypes[[2]]
++   bb <- genotypes[[1]]
++   B <- (BB + 0.5 * Bb) / sum(genotypes)
++   b <- (bb + 0.5 * Bb) / sum(genotypes)
++   return(c(B=B,b=b))
++ }
+> t(apply(boorola,1,alleleFrequencies))
+\end{Sinput}
+\begin{Soutput}
+                  B      b
+Population 1 0.2820 0.7180
+Population 2 0.0502 0.9498
+\end{Soutput}
+\begin{Sinput}
+> genotypeFrequencies <- function(genotypes){
++   genotypes / sum(genotypes)
++ }
+> t(apply(boorola,1,genotypeFrequencies))
+\end{Sinput}
+\begin{Soutput}
+                bb     Bb     BB
+Population 1 0.668 0.1000 0.2320
+Population 2 0.903 0.0936 0.0034
+\end{Soutput}
+\begin{Sinput}
+> populationMean <- function(genotypes, phenotypes){
++   centeredPhenotypes <- phenotypes - mean(phenotypes[c(1,3)])
++   sum(genotypeFrequencies(genotypes) * centeredPhenotypes)
++ }
+> apply(boorola, 1, function(genotypes){populationMean(
++   genotypes = genotypes,
++   phenotypes = c(1.48,2.17,2.66))
++   })
+\end{Sinput}
+\begin{Soutput}
+Population 1 Population 2 
+   -0.247240    -0.521404 
+\end{Soutput}
+\end{Schunk}
+\item For population 2, calculate:
+\begin{itemize}
+\item average effects of alleles,
+\begin{Schunk}
+\begin{Sinput}
+> allelesAverageEffect <- function(genotypes, phenotypes){
++   gValue <- phenotypes - mean(phenotypes[c(1, 3)])
++   names(gValue) <- c("-a", "d", "a")
++   alleles <- alleleFrequencies(genotypes)
++   names(alleles) <- c("p", "q")
++   B = (alleles[["q"]] *
++   (gValue[["a"]] + (gValue[["d"]] *
++   (alleles[["q"]] - alleles[["p"]]))))
++   b = (-alleles[["p"]] *
++   (gValue[["a"]] + (gValue[["d"]] *
++   (alleles[["q"]] - alleles[["p"]]))))
++   return(c(B = B, b = b))
++ }
+> allelesAverageEffect(genotypes = c(bb=9030, Bb=936, BB=34),
++                      phenotypes = c(bb=1.48, Bb=2.17, BB=2.66))
+\end{Sinput}
+\begin{Soutput}
+          B           b 
+ 0.64582601 -0.03413399 
+\end{Soutput}
+\end{Schunk}
+\item average effect of an allele substitution, 
+\begin{Schunk}
+\begin{Sinput}
+> substitutionAverageEffect <- function(genotypes, phenotypes) {
++   gValue <- phenotypes - mean(phenotypes[c(1, 3)])
++   names(gValue) <- c("-a", "d", "a")
++   alleles <- alleleFrequencies(genotypes)
++   names(alleles) <- c("p", "q")
++   sAE <- (gValue[["a"]] +
++             (gValue[["d"]] * (alleles[["q"]] - alleles[["p"]])))
++   return(sAE)
++ }
+> substitutionAverageEffect(
++ genotypes = c(bb = 9030, Bb = 936, BB = 34),
++ phenotypes = c(bb = 1.48, Bb = 2.17, BB = 2.66)
++ )
+\end{Sinput}
+\begin{Soutput}
+[1] 0.67996
+\end{Soutput}
+\end{Schunk}
+\item breeding values,
+\begin{Schunk}
+\begin{Sinput}
+> breedingValues <- function(genotypes, phenotypes) {
++   alphas <- allelesAverageEffect(genotypes = genotypes,
++                                  phenotypes = phenotypes)
++   BB = 2 * alphas[[1]]
++   Bb = sum(alphas)
++   bb = 2 * alphas[[2]]
++   return(c(BB = BB, Bb = Bb, bb = bb))
++ }
+> breedingValues(
++ genotypes = c(bb = 9030, Bb = 936, BB = 34),
++ phenotypes = c(bb = 1.48, Bb = 2.17, BB = 2.66)
++ )
+\end{Sinput}
+\begin{Soutput}
+         BB          Bb          bb 
+ 1.29165202  0.61169202 -0.06826798 
+\end{Soutput}
+\end{Schunk}
+\item dominance deviations, 
+\begin{Schunk}
+\begin{Sinput}
+> dominanceDeviations <- function(genotypes, phenotypes){
++   gValue <- phenotypes - mean(phenotypes[c(1, 3)])
++   names(gValue) <- c("-a", "d", "a")
++   alleles <- alleleFrequencies(genotypes)
++   names(alleles) <- c("p", "q")
++   BB = -2 * (alleles[["q"]] ^ 2) * gValue[["d"]]
++   Bb = 2 * alleles[["p"]] * alleles[["q"]] * gValue[["d"]]
++   bb = -2 * (alleles[["p"]] ^ 2) * gValue[["d"]]
++   return(cbind(BB = BB, Bb = Bb, bb = bb))
++ }
+> dominanceDeviations(
++ genotypes = c(bb = 9030, Bb = 936, BB = 34),
++ phenotypes = c(bb = 1.48, Bb = 2.17, BB = 2.66)
++ )
+\end{Sinput}
+\begin{Soutput}
+            BB          Bb           bb
+[1,] -0.180424 0.009535992 -0.000504008
+\end{Soutput}
+\end{Schunk}
+\item breeding value variance,
+\begin{Schunk}
+\begin{Sinput}
+> breedingValueVariance <- function(genotypes, phenotypes){
++   alleles <- alleleFrequencies(genotypes)
++   names(alleles) <- c("p", "q")
++   alphas <- allelesAverageEffect(genotypes = genotypes,
++   phenotypes = phenotypes)
++   alpha <- (alphas[[1]] - alphas[[2]])
++   vA <- 2 * prod(alleles) * (alpha ^ 2)
++   return(vA)
++ }
+> breedingValueVariance(
++ genotypes = c(bb = 9030, Bb = 936, BB = 34),
++ phenotypes = c(bb = 1.48, Bb = 2.17, BB = 2.66)
++ )
+\end{Sinput}
+\begin{Soutput}
+[1] 0.04408924
+\end{Soutput}
+\end{Schunk}
+\item dominance variance and 
+\begin{Schunk}
+\begin{Sinput}
+> dominanceVariance <- function(genotypes, phenotypes){
++   alleles <- alleleFrequencies(genotypes)
++   names(alleles) <- c("p", "q")
++   gValue <- phenotypes - mean(phenotypes[c(1, 3)])
++   names(gValue) <- c("-a", "d", "a")
++   alphas <- allelesAverageEffect(genotypes = genotypes,
++   phenotypes = phenotypes)
++   alpha <- (alphas[[1]] - alphas[[2]])
++   dV <- (2 * prod(alleles) * gValue[["d"]]) ^ 2
++   return(dV)
++ }
+> dominanceVariance(
++ genotypes = c(bb = 9030, Bb = 936, BB = 34),
++ phenotypes = c(bb = 1.48, Bb = 2.17, BB = 2.66)
++ )
+\end{Sinput}
+\begin{Soutput}
+[1] 9.093514e-05
+\end{Soutput}
+\end{Schunk}
+\item genetic variance.
+\begin{Schunk}
+\begin{Sinput}
+> geneticVariance <- function(genotypes, phenotypes){
++   gV <- breedingValueVariance(
++     genotypes = c(bb = 9030, Bb = 936, BB = 34),
++     phenotypes = c(bb = 1.48, Bb = 2.17, BB = 2.66)
++   ) + dominanceVariance(
++     genotypes = c(bb = 9030, Bb = 936, BB = 34),
++     phenotypes = c(bb = 1.48, Bb = 2.17, BB = 2.66)
++   )
++   return(gV)
++ }
+> geneticVariance(
++ genotypes = c(bb = 9030, Bb = 936, BB = 34),
++ phenotypes = c(bb = 1.48, Bb = 2.17, BB = 2.66)
++ )
+\end{Sinput}
+\begin{Soutput}
+[1] 0.04418017
+\end{Soutput}
+\end{Schunk}
+\end{itemize}
+\item What kind of genetic action appears to be responsible at this locus?
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+    title = {Genotypic Value},
+    axis y line=none,
+    y=1cm/3,
+    restrict y to domain=0:1,
+    axis lines=left,
+    enlarge x limits=upper,
+    scatter/classes={
+        o={mark=*,fill=white}
+    },
+    scatter,
+    scatter src=explicit symbolic,
+    every axis plot post/.style={mark=*,thick},
+    legend style={
+        draw=none,
+        at={(1,1)},
+        anchor=south east
+    },
+    legend image post style={mark=*,thick}
+]
+\addplot table [y expr=0,meta index=1, header=false] {
+-0.59 c
+};\addlegendentry{-a}
+\addplot table [y expr=0,meta index=1, header=false] {
+0.10 c
+};\addlegendentry{d}
+\addplot table [y expr=0,meta index=1, header=false] {
+0.59 c
+};\addlegendentry{+a}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+There appears that the genetic action responsible at this locus is an incomplete dominance associated to the B allele.
+\item By random mating with each of the populations a new generation whitin each of the population above is created. Predict the allele and genotype frequencies and means.
+\begin{Schunk}
+\begin{Sinput}
+> onePopulationRandomMating <- function(genotypes, phenotypes) {
++   alleles <- alleleFrequencies(genotypes)
++   BB <- alleles[["B"]]^2
++   Bb <- 2*prod(alleles)
++   bb <- alleles[["b"]]^2
++   popMean <- populationMean(c(bb, Bb, BB), phenotypes)
++   return(c(
++   alleles,
++   BB = BB,
++   Bb = Bb,
++   bb = bb,
++   popMean = popMean
++   ))
++ }
+> apply(boorola, 1, function(genotypes) {
++ onePopulationRandomMating(genotypes = genotypes,
++ phenotypes = c(bb = 1.48,
++ Bb = 2.17,
++ BB = 2.66))
++ })
+\end{Sinput}
+\begin{Soutput}
+        Population 1 Population 2
+B          0.2820000   0.05020000
+b          0.7180000   0.94980000
+BB         0.0795240   0.00252004
+Bb         0.4049520   0.09535992
+bb         0.5155240   0.90212004
+popMean   -0.2167448  -0.52122801
+\end{Soutput}
+\end{Schunk}
+\item A 3$^{rd}$ population results from randomly crossing individuals of population 1 with those in population 2. Predict allele and genotype frequencies and means.
+\begin{Schunk}
+\begin{Sinput}
+> twoPopulationsRandomMating <-
++   function(p1Genotypes, p2Genotypes, phenotypes) {
++   p1Alleles <- alleleFrequencies(p1Genotypes)
++   p2Alleles <- alleleFrequencies(p2Genotypes)
++   punnet <- outer(p1Alleles,p2Alleles,"*")
++   BB <- punnet["B","B"]
++   Bb <- punnet["B","b"] + punnet["b","B"]
++   bb <- punnet["b","b"]
++   newGenotypesF <- c(bb, Bb, BB)
++   newAlleleF <- alleleFrequencies(c(bb, Bb, BB))
++   popMean <- populationMean(newGenotypesF, phenotypes = phenotypes)
++   c(newAlleleF, c(BB = BB, Bb = Bb, bb = bb), popMean = popMean)
++   }
+>   twoPopulationsRandomMating(
++   p1Genotypes = boorola[1, ],
++   p2Genotypes = boorola[2, ],
++   phenotypes = c(bb = 1.48,
++   Bb = 2.17,
++   BB = 2.66)
++   )
+\end{Sinput}
+\begin{Soutput}
+         B          b         BB         Bb         bb    popMean 
+ 0.1661000  0.8339000  0.0141564  0.3038872  0.6819564 -0.3636133 
+\end{Soutput}
+\end{Schunk}
+\item By random mating within the 3$^{rd}$ population a new generation is created. Predict allele and genotype frequencies and means.
+\begin{Schunk}
+\begin{Sinput}
+> onePopulationRandomMating(
++   genotypes = c(bb = 0.6819564, 
++                 Bb = 0.3038872, 
++                 BB = 0.0141564),
++   phenotypes = c(bb = 1.48,
++   Bb = 2.17,
++   BB = 2.66)
++   )
+\end{Sinput}
+\begin{Soutput}
+          B           b          BB          Bb          bb     popMean 
+ 0.16610000  0.83390000  0.02758921  0.27702158  0.69538921 -0.36629984 
+\end{Soutput}
+\end{Schunk}
+\end{enumerate}
+\end{enumerate}
+\end{document}

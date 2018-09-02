@@ -1,0 +1,81 @@
+\documentclass[12pt,a4paper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\begin{document}
+\title{GENE613 - Homework 1\\\small{Daniel Osorio - dcosorioh@tamu.edu\\Department of Veterinary Integrative Biosciences\\Texas A\&M University}}
+\maketitle
+\SweaveOpts{concordance=TRUE}
+\begin{enumerate}
+\item[0.] Read the data 
+<<>>=
+hw1Data <- read.delim(file = "../data/hw1data18.txt",
+                      stringsAsFactors = FALSE
+                      )
+@
+\item Give the minimum, the maximum, the mean, the variance, the standard deviation, and the coefficient of variation for the ADG and DDMI.
+<<>>=
+hw1pt1 <- function(data) {
+  return(c(
+    min = min(data),
+    max = max(data),
+    mean = mean(data),
+    var = var(data),
+    stdDev = sd(data),
+    CV = (sd(data) / mean(data))
+  ))
+}
+apply(hw1Data[, 3:4], 2, hw1pt1)
+@
+\item Calculate the covariance of ADG and DDMI, the correlation of ADG and DDMI, the regression of ADG on DDMI, and the regression of DDMI on ADG, and explain the differences between these values.
+<<>>=
+hw1pt2 <- function(data) {
+  return(c(
+    covariance = with(data, cov(ADG, DDMI)),
+    correlation = with(data, cor(ADG, DDMI)),
+    b1_ADGonDDMI = (coef(with(hw1Data, lm(ADG ~ DDMI)))[[2]]),
+    b1_DDMIonADG = (coef(with(data, lm(DDMI ~ ADG)))[[2]])
+  ))
+}
+hw1pt2(hw1Data)
+@
+\begin{description}[align=left]
+\item [Covariance:] is a measure of how much two random variables vary together. It is measured as the mean value of the product of the deviations of two variables from their respective means. In this case, the covariance is positive, which means that the majority of the greater values of ADG mainly correspond with greater values of the DDMI variable.
+\item [Correlation:] is a measure of the degree to which changes to the value of one variable predict the change in the value of another. In this case, the correlation es positive and close to 1 which means that if we know the changes in one variable, is highly probable to predict the changes in the another. 
+\item [$\beta_{1}$:] is the degree of change in the outcome variable for every 1-unit of change in the predictor variable.
+\end{description}
+\item Execute the following code (you may need to modify the trait names to the right
+of the $\leftarrow$ depending upon how you input your data) in R
+<<>>=
+no3.adg.ddmi <-  with(hw1Data, lm(ADG~DDMI))
+no3.ddmi.adg <-  with(hw1Data, lm(DDMI~ADG))
+summary(no3.adg.ddmi)
+summary(no3.ddmi.adg)
+@
+Explain the results by executing this code
+\begin{description}[align=left]
+\item [Coefficients:] The beta coefficient is the degree of change in the outcome variable for every 1-unit of change in the predictor variable.
+\item [R squared:] The coefficient of determination is the percent of variance in the outcome variable that is explained by the set of predictor variables.
+\item [F stat:] Is a statistic that tests the amount of variance in the outcome variable explained by the generated model.  If the F-value is statistically significant (typically p < .05) we say that the model explains a significant amount of variance in the outcome variable.
+\end{description}
+\item Calculate means and SD for sires. If you wanted to increase ADG, which sire would
+you choose to be a parent in the next generation? If you wanted to decrease DDMI,
+which sire should you choose?
+<<>>=
+hw1pt4 <- function(sireID){
+  selectedSire <- hw1Data[with(hw1Data, sire %in% sireID),]
+  c(MEAN=apply(selectedSire[,3:4],2,mean),
+  SD=apply(selectedSire[,3:4],2,sd))
+}
+sapply(unique(hw1Data$sire),hw1pt4)
+@
+\begin{description}[align=left]
+\item [Q1:] If you wanted to increase ADG, which sire would you choose to be a parent in the next generation? I would select the sire 432H which shows the second highest ADG value and the lowest variability between sires.
+\item [Q2:] If you wanted to decrease DDMI, which sire should you choose? I would select the sire 432H which shows the second lowest DDMI value and the lowest variability between sires.
+\end{description}
+\end{enumerate}
+\end{document}

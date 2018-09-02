@@ -1,0 +1,306 @@
+\documentclass[12pt,a4paper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{tikz}
+ \usepackage[usenames,dvipsnames]{pstricks}
+ \usepackage{epsfig}
+ \usepackage{pst-grad} % For gradients
+ \usepackage{pst-plot} % For axes
+ \usepackage[space]{grffile} % For spaces in paths
+ \usepackage{etoolbox} % For spaces in paths
+ \makeatletter % For spaces in paths
+ \patchcmd\Gread@eps{\@inputcheck#1 }{\@inputcheck"#1"\relax}{}{}
+ \makeatother
+\usepackage{pgfplots}
+\usepackage{longtable}
+\usepackage[makeroom]{cancel}
+\usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\begin{document}
+\title{GENE613 - Exam 3\\\small{Daniel Osorio - dcosorioh@tamu.edu\\Department of Veterinary Integrative Biosciences\\Texas A\&M University}}
+\maketitle
+\SweaveOpts{concordance=TRUE}
+\begin{enumerate}
+\item A single locus with 2 alleles in HWE in each of four populations
+\begin{center}
+\begin{tabular}{|r|c|c|c|c|}
+\hline
+GENOTYPE:&$A_{1}A_{1}$&$A_{1}A_{2}$&$A_{2}A_{2}$&$f(A_{1})$\\
+VALUE:&4&22&50&\\
+\hline
+\hline
+Population I:&0.01&0.2&0.79&0.11\\
+\hline
+Population II:&0.79&0.2&0.01&0.89\\
+\hline
+Population II:&0&0&1&0\\
+\hline
+Population IV:&0&0.02&0.98&0.01\\
+\hline
+\end{tabular}
+\end{center}
+\begin{enumerate}
+\item Two F1 populations are produced by mating individuals from population 1 to individuals in population 2 and separately for individuals from population 3 to individuals in population 4. Two F2 populations are produced by inter se matings within each F1 group (one F2 from the population 1 \& 2 F1s and one F2 from the populations 3 \& 4 F1s). Calculate the heterosis expressed in both F1 populations and both F2 populations.
+<<>>=
+aValue <- 4 - mean (c(4, 50))
+dValue <- 22 - mean (c(4, 50))
+heterosisF1 <- function(p1, p2, a, d){
+  q1 <- 1 - p1
+  q2 <- 1 - p2
+  y <- p1 - p2
+  MP1 <- a * (p1 - q1) + 2 * p1 * q1 * d
+  MP2 <- a * (p2 - q2) + 2 * p2 * q2 * d
+  midP <- mean(c(MP1, MP2))
+  MF <- a * (p1 - q1 - y) + d * (2 * p1 * q1 + y * (p1 - q1))
+  HF <- MF - midP
+  return(HF)
+}
+heterosisF1(p1 = 0.11, p2 = 0.89, a = aValue, d = dValue)
+heterosisF1(p1 = 0, p2 = 0.01, a = aValue, d = dValue)
+heterosisF2 <- function (p1, p2, a, d){
+  0.5 * heterosisF1(p1, p2, a, d)
+}
+heterosisF2(p1 = 0.11, p2 = 0.89, a = aValue, d = dValue)
+heterosisF2(p1 = 0, p2 = 0.01, a = aValue, d = dValue)
+@
+\item Estimated heterosis values were -0.25 at 5 additional loci (none appear to interact with each other, nor with the locus above). What is total heterosis in both of the F1 populations? What do you expect it to be in the F2 populations?
+<<>>=
+- 0.25 + (dValue * (0.11 - 0.89) ^ 2)
+- 0.25 + (dValue * (0 - 0.01) ^ 2)
+0.5 * (-0.25 + (dValue * (0.11 - 0.89) ^ 2))
+0.5 * (-0.25 + (dValue * (0 - 0.01) ^ 2))
+@
+\end{enumerate}
+\item The table below is for pigs from Suzuki et al. (2004) J. Anim. Sci. 82:994-999. Blood plasma concentrations of IGFI were measured in pigs at 8 wk of age (IGFI-8W) and 105 kg of body weight (IGFI-105KG). Estimates of heritability ($h^{2}$) and additive genetic correlation ($r_{a}$) for IGFI concentration, and additive genetic standard deviations ($\sigma_{a}$) at the two measured points are shown for traits in the far right column. Standard errors ($SE$) for each genetic parameter are in columns immediately to the right of $h^{2}$ and $r_{a}$ estimates. Pigs in each generation are assigned to two equal (in number) groups based on their IGFI-8W value:  the highest values are in group 1 and the lowest values are in group 2.
+\begin{center}
+\begin{longtable}{|r|c|c|c|c|c|c|c|}
+\hline
+\multicolumn{1}{}{}&\multicolumn{1}{}{}&\multicolumn{1}{}{}&\multicolumn{2}{|c|}{\small{IGFI-8W, ng/mL}}&\multicolumn{2}{|c|}{\small{IGFI-105KG, ng/mL}}&\multicolumn{1}{}{}\\
+\hline
+Traits&$h^{2}$&SE&$r_{a}$&SE&$r_{a}$&SE&$\sigma_{a}$\\
+\hline
+\hline
+\endfirsthead
+\hline
+\multicolumn{1}{}{}&\multicolumn{1}{}{}&\multicolumn{1}{}{}&\multicolumn{2}{|c|}{\small{IGFI-8W, ng/mL}}&\multicolumn{2}{|c|}{\small{IGFI-105KG, ng/mL}}&\multicolumn{1}{}{}\\
+\hline
+Traits&$h^{2}$&SE&$r_{a}$&SE&$r_{a}$&SE&$\sigma_{a}$\\
+\hline
+\hline
+\endhead
+\hline
+\endfoot
+Daily gain, g/d&0.49&0.03&0.26&0.08&0.22&0.07&56.49\\
+Loin muscle area, cm$^2$&0.43&0.03&0.22&0.1&0.42&0.08&2.419695\\
+Backfat thickness, cm&0.73&0.02&0.13&0.08&-0.02&0.07&0.333216\\
+Intramuscular fat, \%&0.39&0.03&0.32&0.1&0.26&0.09&0.8743\\
+Tenderness, kdf/cm$^{2}$&0.39&0.04&-0.05&0.12&0.36&0.1&7.931147\\
+Body weight at 8wk, kg&0.24&0.02&0.45&0.08&0.09&0.09&1.557875\\
+Backfat thickness at 8 wk, cm&0.41&0.02&0.33&0.06&0&0.06&1.062919\\
+Feed conversion ratio&0.35&0.04&0.2&0.08&-0.17&0.07&0.100573\\
+IGFI-8W, ng/mL&0.23&0.03&&&0.73&0.08&19.1833\\
+IGFI-105KG, ng/mL&0.26&0.03&&&&&22.69064\\
+\hline
+\end{longtable}
+\end{center}
+\begin{enumerate}
+\item In a selection program in which only group 1 pigs are allowed to be parents, what would be the response to selection and the correlated response in each of the other traits?
+\[R_{k} = ih\sigma_{a}\]
+\textit{As the two groups are equal in number, which means each one has the 50\% of the individuals and an associate selection intensity of 0.8}
+<<>>=
+i <- 0.8
+h <- sqrt(c(0.49, 0.43, 0.73, 0.39, 0.39, 
+            0.24, 0.41, 0.35, 0.23, 0.26))
+sigma_a <- c(56.49, 2.42, 0.33, 0.87, 7.93, 
+             1.56, 1.06, 0.1, 19.18, 22.69)
+rSelection <- i * h * sigma_a
+names(rSelection) <- c("Daily gain", "Loin muscle area", 
+                       "Backfat thickness (BT)", 
+                       "Intramuscular fat", "Tenderness", 
+                       "Body weight at 8wk", "BT at 8 wk", 
+                       "Feed conversion ratio", "IGFI-8W", 
+                       "IGFI-105KG")
+rSelection
+@
+\[CR_{y} = ih_{x}r_{a}\sigma_{a_{y}}\]
+<<>>=
+r_a <- c(0.26, 0.22, 0.13, 0.32, -0.05, 0.45, 0.33, 0.2)
+sigma_ay <- c(56.49, 2.42, 0.33, 0.87, 7.93, 1.56, 1.06, 0.1)
+h_x <- sqrt(0.23)
+cResponse_IGFI8W <- i * h_x * r_a * sigma_ay
+names(cResponse_IGFI8W) <- c("Daily gain", "Loin muscle area", 
+                       "Backfat thickness (BT)", 
+                       "Intramuscular fat", "Tenderness", 
+                       "Body weight at 8wk", "BT at 8 wk", 
+                       "Feed conversion ratio")
+cResponse_IGFI8W
+h_x <- sqrt(0.26)
+r_a <- c(0.22, 0.42, -0.02, 0.26, 0.36, 0.09, 0, -0.17)
+cResponse_IGFI105KG <- i * h_x * r_a * sigma_ay
+names(cResponse_IGFI105KG) <- c("Daily gain", "Loin muscle area", 
+                       "Backfat thickness (BT)", 
+                       "Intramuscular fat", "Tenderness", 
+                       "Body weight at 8wk", "BT at 8 wk", 
+                       "Feed conversion ratio")
+cResponse_IGFI105KG
+@
+\item What is required to annualize response? \textit{The generation interval (L) which is the time for generation replacement.} What would you project that to be for pigs? \textit{As for pigs the L value is a small number, the annualize response to selection will be high.}
+\item The additive genetic correlation between IGFI-105KG and Feed Conversion Ratio (this is the ratio of all feed consumed to total weight gained) is –0.17 $\pm$ 0.07. Interpret this value, including its SE. \textit{-0.17 is the average degree (\%) of association between the breeding value between IGFI-105KG and Feed Conversion Ratio and $\pm$ 0.07 is the standard deviation of the computation of this coefficient which means that the population coefficient of correlation between these two traits is more likely (64\% of probability if we assume standardized normal distribution) to be between 0.10 and 0.24 }
+\end{enumerate}
+\item What parameters influence the accuracies of estimated breeding values? \textit{If we consider accuracy as a bias in the calculation of the breeding value, this could come from the determination of the allele frequencies $p$ and $q$ from the sampled population, as well as from the determination of the parameters $a$ and $d$. By other hand, if we consider accuracy as the precision, then the estimation of the breeding value is affected by the number of observations per individual as well as for the number of observations on relatives.}
+\item Two lines of Hereford cattle that were homozygous for opposite alleles at two
+syntenic marker loci (Line 1 genotype MMqq; Line 2 genotype = mmQQ). Ten F1 bulls that were contemporaries to each other had semen samples collected and mass genotyped for these two markers. Gametic frequencies:
+\begin{center}
+\begin{tabular}{cccc}
+MQ&Mq&mQ&mq\\
+0.05&0.44&0.4&0.1\\
+\end{tabular}
+\end{center}
+Estimate the recombination rate $r$ from these frequencies. Convert to map distance for the interval between the two loci in cM using Haldane’s original map function and then his subsequent approximation. \textit{If we consider that: $MQ = \frac{1-r}{2}$, $mq =  \frac{1-r}{2}$, $Mq = \frac{r}{2}$, $mQ = \frac{r}{2}$ and $r = \frac{r}{2} + \frac{r}{2}$, then we have that:}
+<<>>=
+r <- 0.5 * mean(abs((c(0.05, 0.1, 0.44, 0.4) - 
+                       c(0.5, 0.5, 0, 0)) / 0.5))
+r
+haldane <- function(r){(-0.5*log(1-2*r))/0.01}
+haldane(r)
+haldaneR <- function(r){(0.7*r-0.15*log(1-2*r))/0.01}
+haldaneR(r)
+@
+\item Describe the essential features of Henderson’s Mixed Model Equations relative to prediction, and what made them different from previous linear regression models. \textit{Henderson’s Mixed Model Equations allow us to estimate the average breeding value of contemporary groups taking into account the performance of relatives in other contemporary groups. These association between relatives (correlated data) is the highest difference between this method and the linear regression model where each individual is assumed to be independent.}
+\item Assume you have phenotypes for all of the individuals in this (extremely) old Angus pedigree. If phenotypes of the others were used to predict breeding values for the youngest animal in the pedigree, rank those from best to worst. \textit{The ranking in order of how well a phenotype of a related individual would predict breeding values of Octavia is: Old Jock > Grey Breasted Jock = Favorite } Give the average inbreeding coefficient for this group.
+\begin{center}
+\psscalebox{1.0 1.0} % Change this value to rescale the drawing.
+{
+\begin{pspicture}(0,-1.5835714)(4.6585712,1.5835714)
+\rput[bl](0.5714286,1.2735714){Grey Breasted Jock}
+\rput[bl](3.4285715,-0.059761904){Favorite}
+\rput[bl](0.0,-0.4407143){Old Jock}
+\rput[bl](2.4761906,-1.5835714){Octavia}
+\psline[linecolor=black, linewidth=0.04, arrowsize=0.05291667cm 2.0,arrowlength=1.4,arrowinset=0.0]{->}(2.0952382,1.0830952)(0.5714286,-0.059761904)
+\psline[linecolor=black, linewidth=0.04, arrowsize=0.05291667cm 2.0,arrowlength=1.4,arrowinset=0.0]{->}(2.6666667,1.0830952)(3.8095238,0.32119048)
+\psline[linecolor=black, linewidth=0.04, arrowsize=0.05291667cm 2.0,arrowlength=1.4,arrowinset=0.0]{->}(0.5714286,-0.6311905)(2.907143,-1.2026191)
+\psline[linecolor=black, linewidth=0.04, linestyle=dashed, dash=0.17638889cm 0.10583334cm, arrowsize=0.05291667cm 2.0,arrowlength=1.4,arrowinset=0.0]{->}(3.2380953,-0.059761904)(1.5238096,-0.2502381)
+\psline[linecolor=black, linewidth=0.04, linestyle=dashed, dash=0.17638889cm 0.10583334cm, arrowsize=0.05291667cm 2.0,arrowlength=1.4,arrowinset=0.0]{->}(3.8095238,-0.2502381)(3.047619,-1.2026191)
+\end{pspicture}
+}
+\end{center}
+<<echo=FALSE>>=
+createA <- function(s, d){
+  n <- length(s)
+  N <- n + 1
+  A <- matrix(0, ncol=N, nrow=N)
+  s <- (s == 0)*(N) + s
+  d <- (d == 0)*N + d
+  for(i in 1:n){
+    A[i,i] <- 1 + A[s[i], d[i]]/2
+    for(j in (i+1):n){
+      if (j > n) break
+      A[i,j] <- ( A[i, s[j]] + A[i,d[j]] )/2
+      A[j,i] <- A[i,j] 	
+    }			
+  }
+  return(A[1:n, 1:n])
+}
+A <- createA(c(0,1,1,3),c(0,0,2,3))
+colnames(A) <- rownames(A) <- c("Grey Breasted Jock", "Favorite", "Old Jock", "Octavia")
+A
+cat("F:")
+diag(A)-1
+cat("Average inbreeding coefficient:")
+mean(diag(A)-1)
+
+@
+\item Assume in the context of experimentation with a simple null hypothesis of $\beta_{1}$ = 0 for $m$ SNP loci in a GWAS, you set the probability of Type error I to 0.05 (you can control this) for each test. Assume that the probability of a Type II error is 0.2. 
+\begin{center}
+\begin{tabular}{|r|c|c|c|}
+\hline
+&Declared Non Significant&Declared Significant&Total\\
+\hline
+True Null Hypotheses&$U$&$V$&$m_{0}$\\
+\hline
+Non-True Null Hypotheses&$T$&$S$&$m - m_{0}$\\
+\hline
+&$m - R$&$R$&$m$\\
+\hline
+\end{tabular}
+\end{center}
+\begin{enumerate}
+\item What will be the probabilities of V incorrect rejections of null hypotheses?\\ \textit{$\alpha = 0.05$}
+\item What is the probability of S correct rejections of null hypotheses?\\ \textit{$1-\beta = 0.8$}
+\item What will be the corresponding FDR in that scenario? \[Q = \frac{V}{R}, R > 0\]\[Q = \frac{0.05}{0.8 + 0.05} = 0.06\]
+\end{enumerate}
+\item Define $\sigma^{2}_{a}$ \textit{The additive genetic variance is the deviation from the mean phenotype due to inheritance of a particular allele and this allele's relative (to the mean phenotype of the population) effect on phenotype.}
+\item A Bonferroni correction of P values for multiple testing in a genome-wide association requires independence of tests, which is not the case.  Why are such tests not independent? \textit{Because not all the considered genetic markers (SNPs) are segregated in an independent manner, several ones segregate together due to the linkage disequilibrium (LD)}
+\item The breeding objective in the below mouse population is to increase litter size. 
+\begin{center}
+\begin{tabular}{|r||c|c|c|c|c|c|c|c|c|c|}
+\hline
+MOUSE ID:&1&2&3&4&5&6&7&8&9&10\\
+\hline
+\hline
+1st parity&11&9&13&10&9&8&10&11&10&13\\
+\hline
+2nd parity&10&12&12&10&7&6&12&9&12&12\\
+\hline
+3rd parity&12&12&11&11&7&10&9&11&10&14\\
+\hline
+4th parity&12&10&11&10&10&8&4&12&12&12\\
+\hline
+\end{tabular}
+\end{center}
+Using the above information, make a recommendation to remove 4 of the above females. $R$ = 0.57. \textit{I recomend to remove the mouses with ID 4, 5, 6 and 7 because they have the lowest ERPA values in the sample.}
+<<echo=FALSE>>=
+M <- matrix(c(11,9,13,10,9,8,10,11,10,13,
+         10,12,12,10,8,6,12,9,12,12,
+         12,12,11,11,7,10,9,11,10,14,
+         12,10,11,10,10,8,4,12,12,12),ncol = 10,byrow = TRUE)
+R <- 0.57
+ID <- 1:10
+AVERAGE <- rowMeans(scale(t(M), center = TRUE, scale = FALSE))
+n <- rep(4,10)
+ERPA <- R * AVERAGE
+ACC <- sqrt(n*R/(1+(n-1)*R))
+cbind(ID, AVERAGE, n, ERPA, ACC)
+@
+How good are the estimates of merit that you base your decision on? \textit{All the computed values have a ACC of 0.917} If $V_{P}$= 12.2, what is estimate for $V_{PA}$? \textit{As $R = \frac{V_{PA}}{V_{P}}$ then $V_{PA} = RV_{P} = 0.57 \times 12.2 = 6.954$ }
+
+
+\item For two syntenic loci with alleles $A$, $a$ and $B$, $b$, give an example showing why the parameter space of $D_{AB}$ must be: $max(-p_{A}p_{B},-p_{a}p_{b}) \leq D_{AB} \leq min(p_{A}p_{b},p_{a}p_{B})$.\\
+\textit{As $D_{AB}$ is a portion of additional or missing expected genotype frequency, and  the sum of all the genotypes in a population must be 1 with each genotype frequency in a range between 0 and 1.}
+\begin{center}
+\begin{tabular}{|r||c|c||l|}
+\hline
+&A&a&\\
+\hline
+\hline
+B&$p_{B}p_{A}+D_{AB}$&$p_{B}p_{a}-D_{AB}$&$p_{B}$\\
+\hline
+b&$p_{b}p_{A}-D_{AB}$&$p_{b}p_{a}+D_{AB}$&$p_{b}$\\
+\hline
+\hline
+&$p_{A}$&$p_{a}$&1\\
+\hline
+\end{tabular}
+\end{center}
+\textit{If we consider as an as example that: $p_{A} = 0.7,  p_{B} = 0.6, p_{a} = 0.3$ and  $p_{b} = 0.4$, then the expected values will be:}
+\begin{center}
+\begin{tabular}{|r||c|c||l|}
+\hline
+&A&a&\\
+\hline
+\hline
+B&$0.42+D_{AB}$&$0.18-D_{AB}$&$p_{B}$\\
+\hline
+b&$0.28-D_{AB}$&$0.12+D_{AB}$&$p_{b}$\\
+\hline
+\hline
+&$p_{A}$&$p_{a}$&1\\
+\hline
+\end{tabular}
+\end{center}
+\textit{And the parameter space for $D_{AB}$ will be: $max\left(-0.42,\textbf{-0.12}\right) \leq D_{AB} \leq min\left(0.28,\textbf{0.18}\right)$ otherwise the values of D will lead generate negative values of the genotype frequencies, out of the range of the expected values (which is not possible).}
+\end{enumerate}
+\end{document}

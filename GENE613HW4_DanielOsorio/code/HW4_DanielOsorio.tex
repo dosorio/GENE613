@@ -1,0 +1,188 @@
+\documentclass[12pt,a4paper]{paper}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage[makeroom]{cancel}
+\usepackage{enumitem}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{Sweave}
+\begin{document}
+\title{GENE613 - Homework 4\\\small{Daniel Osorio - dcosorioh@tamu.edu\\Department of Veterinary Integrative Biosciences\\Texas A\&M University}}
+\maketitle
+\input{HW4_DanielOsorio-concordance}
+Decay of disequilibrium is a function of $r$ and generations $t$
+\begin{equation*}
+D^{t}_{AB} = \left(1-r\right)^{t}D_{AB}^{0}
+\end{equation*}
+\begin{enumerate}
+\item As $t \rightarrow \infty$ what happens to $D^{t}_{AB}$?\\
+As $D^{t}_{AB}$ changes in function of  $t$ and $(1-r)^{t}$ will be always a smaller number as $t$ increases, the $\left(1-r\right)^{t}D_{AB}^{0}$ will tend to 0.
+\item Derive a general solution for the number of generations $t$ required to move from initial disequilibrium $D_{AB}^{0}$ to a target, or eventual disequilibrium $D_{AB}^{t}$
+\begin{equation}
+\begin{split}
+D^{t}_{AB} &= \left(1-r\right)^{t} \times D_{AB}^{0}\\
+log\left(D^{t}_{AB}\right) &= t \times log\left(1-r\right) + log\left(D_{AB}^{0}\right)\\
+log\left(D^{t}_{AB}\right) - log\left(D_{AB}^{0}\right) &= t \times log\left(1-r\right)\\
+log\left(D^{t}_{AB}\right) - log\left(D_{AB}^{0}\right) &= t \times log\left(1-r\right)\\
+\frac{log\left(D^{t}_{AB}\right) - log\left(D_{AB}^{0}\right)}{log\left(1-r\right)} &= t
+\end{split}
+\end{equation}
+\begin{Schunk}
+\begin{Sinput}
+> requiredGenerations <- function(start, end, r) {
++   return (ceiling((log(end) - log(start)) / log(1 - r)))
++ }
+\end{Sinput}
+\end{Schunk}
+\item If initial disequilibrium is 0.2 and recombination rate between a pair of loci is 0.2
+\begin{enumerate}
+\item Evaluate the magnitude of this disequilibrium\\
+As the disequilibrium coefficient $D_{AB}$ varies in magnitude between a minimum of -0.25 and a maximum of +0.25 when there are only repulsion gametes or they are not present, a $D_{AB}$ = 0.2 is a high value that represents the 80\% of the maximum disequilibrium possible.
+\item Interpret and evaluate the magnitude of this recombination rate\\
+As the recombination rate ($r$) ranges in value between 0  and 0.5 the maximum is at 0.5 because, with an independent assortment of the two loci, one-half of the gametes produced will still be the parental type. A $r$ value of 0.2 is the 40\% of the maximum recombination rate possible.
+\item How many generations would be required to reach a disequilibrium value of 
+\begin{enumerate}
+\item 0.1? 
+\begin{Schunk}
+\begin{Sinput}
+> requiredGenerations(start = 0.2, r = 0.2, end = 0.1)
+\end{Sinput}
+\begin{Soutput}
+[1] 4
+\end{Soutput}
+\end{Schunk}
+\item 0.05? 
+\begin{Schunk}
+\begin{Sinput}
+> requiredGenerations(start = 0.2, r = 0.2, end = 0.05)
+\end{Sinput}
+\begin{Soutput}
+[1] 7
+\end{Soutput}
+\end{Schunk}
+\item 0?
+\begin{Schunk}
+\begin{Sinput}
+> requiredGenerations(start = 0.2, r = 0.2, end = 0)
+\end{Sinput}
+\begin{Soutput}
+[1] Inf
+\end{Soutput}
+\end{Schunk}
+\end{enumerate}
+\end{enumerate}
+\item Given $P_{AB} = 0.6$, $P_{Ab} = 0.1$, $P_{aB} = 0.2$ and $P_{ab} = 0.1$ calculate:
+\begin{enumerate}
+\item Allele frquencies
+\begin{Schunk}
+\begin{Sinput}
+> alleleFrequencies <- function(AB, Ab, aB, ab) {
++   return(c(
++     A = AB + Ab,
++     B = AB + aB,
++     a = aB + ab,
++     b = Ab + ab
++   ))
++ }
+> alleleFrequencies(AB = 0.6, Ab = 0.1, aB = 0.2, ab = 0.1)
+\end{Sinput}
+\begin{Soutput}
+  A   B   a   b 
+0.7 0.8 0.3 0.2 
+\end{Soutput}
+\end{Schunk}
+\item $D_{AB}$
+\begin{Schunk}
+\begin{Sinput}
+> D <- function(a = NULL, A=NULL, b=NULL, B=NULL, observedF) {
++   if(length(c(A,B)) > 1 | length(c(a,b)) > 1){
++     return(observedF - c((A*B),(a*b)))
++   } else{
++     return(c((A*b),(a*B)) - observedF)
++   }
++ }
+> D(A = 0.7, B = 0.8, observedF = 0.6)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.04
+\end{Soutput}
+\end{Schunk}
+\item $D_{Ab}$
+\begin{Schunk}
+\begin{Sinput}
+> D(A = 0.7, b = 0.2, observedF = 0.1)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.04
+\end{Soutput}
+\end{Schunk}
+\item $D_{aB}$
+\begin{Schunk}
+\begin{Sinput}
+> D(a = 0.3, B = 0.8, observedF = 0.2)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.04
+\end{Soutput}
+\end{Schunk}
+\item $D_{ab}$
+\begin{Schunk}
+\begin{Sinput}
+> D(a = 0.3, b = 0.2, observedF = 0.1)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.04
+\end{Soutput}
+\end{Schunk}
+\item $D'$
+\begin{Schunk}
+\begin{Sinput}
+> lewontinD <- function (DAB, PA, PB, Pa, Pb) {
++   ifelse(test = DAB > 0,
++          yes = (DAB / min(c(PA * Pb, Pa * PB))),
++          no = (DAB / min(c(PA * PB, Pa * Pb))))
++ }
+> lewontinD(DAB = 0.04, PA = 0.7, PB = 0.8, Pa = 0.3, Pb = 0.2)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.2857143
+\end{Soutput}
+\end{Schunk}
+\item $r^{2}$
+\begin{Schunk}
+\begin{Sinput}
+> rSquared <- function(DAB, PA, PB, Pa, Pb) {
++   (DAB ^ 2) / (PA * Pa * PB * Pb)
++ }
+> rSquared(DAB = 0.04, PA = 0.7, PB = 0.8, Pa = 0.3, Pb = 0.2)
+\end{Sinput}
+\begin{Soutput}
+[1] 0.04761905
+\end{Soutput}
+\end{Schunk}
+\end{enumerate}
+\item Show thar $D_{ab}$ = $D_{AB}$
+\begin{equation}
+\begin{split}
+D_{ab} &= D_{AB}\\
+P(ab) - P(a) \times P(b) &= P(AB) - (P(A) \times P(B))\\
+P(ab) - \left[(1-P(A)) \times (1-P(B))\right] &= P(AB) - (P(A) \times P(B))\\
+P(ab) - \left[1 - P(A) -P(B) + (P(A) \times P(B))\right] &= P(AB) - (P(A) \times P(B))\\
+P(ab) - 1 + P(A) + P(B) \bcancel{- (P(A) \times P(B))} &= P(AB) \bcancel{- (P(A) \times P(B))}\\
+P(ab) - 1 + P(A) + P(B)  &= P(AB)\\
+\bcancel{P(ab)} - P(AB) - P(Ab) - P(aB) \bcancel{- P(ab)} + P(A) + P(B)  &= P(AB)\\
+- P(AB) - P(Ab) - P(aB) + P(A) + P(B)  &= P(AB)\\
+- P(AB) - P(Ab) - P(aB) + P(AB) + P(Ab) + P(B)  &= P(AB)\\
+\bcancel{- P(AB)} - P(Ab) - P(aB) \bcancel{+ P(AB)} + P(Ab) + P(B)  &= P(AB)\\
+\bcancel{- P(Ab)} - P(aB) \bcancel{+ P(Ab)} + P(B)  &= P(AB)\\
+- P(aB) + P(B)  &= P(AB)\\
+\bcancel{- P(aB)} + P(AB) \bcancel{+ P(aB)} &= P(AB)\\
+P(AB) &= P(AB)\\
+\end{split}
+\end{equation}
+\end{enumerate}
+\end{document}
